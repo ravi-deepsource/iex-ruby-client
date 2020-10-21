@@ -7,7 +7,6 @@ module IEX
       include Endpoints::Crypto
       include Endpoints::Dividends
       include Endpoints::Earnings
-      include Endpoints::Income
       include Endpoints::KeyStats
       include Endpoints::LargestTrades
       include Endpoints::Logo
@@ -16,8 +15,6 @@ module IEX
       include Endpoints::Price
       include Endpoints::Quote
       include Endpoints::Sectors
-      include Endpoints::RefData
-      include Endpoints::StockMarket
 
       include Cloud::Connection
       include Cloud::Request

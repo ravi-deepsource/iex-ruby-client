@@ -8,7 +8,7 @@ module IEX
         return '+0.00%' if float_number.zero?
 
         [
-          float_number.positive? ? '+' : '',
+          float_number > 0 ? '+' : '',
           format('%.2f', float_number * 100),
           '%'
         ].join

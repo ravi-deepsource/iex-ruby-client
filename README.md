@@ -22,16 +22,10 @@ A Ruby client for the [The IEX Cloud API](https://iexcloud.io/docs/api/).
   - [Get Key Stats](#get-key-stats)
   - [Get Dividends](#get-dividends)
   - [Get Earnings](#get-earnings)
-  - [Get Income Statement](#get-income-statement)
   - [Get Sector Performance](#get-sector-performance)
   - [Get Largest Trades](#get-largest-trades)
   - [Get a Quote for Crypto Currencies](#get-a-quote-for-crypto-currencies)
-  - [ISIN Mapping](#isin-mapping)
-  - [Get Symbols](#get-symbols)
-  - [Get List](#get-list)
-  - [Other Requests](#other-requests)
 - [Configuration](#configuration)
-- [Sandbox Environment](#sandbox-environment)
 - [Errors](#errors)
   - [SymbolNotFound](#symbolnotfound)
   - [PermissionDeniedError](#permissiondeniederror)
@@ -53,26 +47,20 @@ Run `bundle install`.
 
 ### Get an API Token
 
-Create an account on [IEX Cloud](https://iexcloud.io) and get a publishable token from the IEX cloud console.
+Create an account on [IEX Cloud](https://iexcloud.io) and get a publishable token from the cloud console.
 
 ### Configure
 
 ```ruby
 IEX::Api.configure do |config|
-  config.publishable_token = 'publishable_token' # defaults to ENV['IEX_API_PUBLISHABLE_TOKEN']
-  config.secret_token = 'secret_token' # defaults to ENV['IEX_API_SECRET_TOKEN']
-  config.endpoint = 'https://cloud.iexapis.com/v1' # use 'https://sandbox.iexapis.com/v1' for Sandbox
+  config.publishable_token = 'token' # defaults to ENV['IEX_API_PUBLISHABLE_TOKEN']
 end
 ```
 
 You can also configure an instance of a client directly.
 
 ```ruby
-client = IEX::Api::Client.new(
-  publishable_token: 'publishable_token',
-  secret_token: 'secret_token',
-  endpoint: 'https://cloud.iexapis.com/v1'
-)
+client = IEX::Api::Client.new(publishable_token: 'token')
 ```
 
 ### Get a Single Price
@@ -105,7 +93,7 @@ See [#quote](https://iexcloud.io/docs/api/#quote) for detailed documentation or 
 Fetches a single stock OHLC price. Open and Close prices contain timestamp.
 
 ```ruby
-ohlc = client.ohlc('MSFT')
+ohlc = client.ohlc.get('MSFT')
 
 ohlc.close.price # 90.165
 ohlc.close.time #
@@ -198,19 +186,6 @@ client.chart('MSFT', Date.new(2018, 3, 26)) # a specific date
 client.chart('MSFT', '1d', chart_interval: 10) # every n-th data point
 ```
 
-Note that calling the chart API weighs more than 1 IEX message (you pay more than 1 call).
-
-```
-# 1 message per minute capped at 50 messages to intraday_prices
-client.chart('MSFT', '1d')
-
-# 2x22 trading days = 44 messages to historical_close_prices
-client.chart('MSFT', '1m', chart_close_only: true)
-
-# 2x251 trading days = 502 messages to historical_close_prices
-client.chart('MSFT', '1y', chart_close_only: true)
-```
-
 ### Get Key Stats
 
 Fetches company's key stats for a symbol.
@@ -224,7 +199,7 @@ key_stats.week_52_high_dollar # "$136.04"
 key_stats.week_52_low # 95.92,
 key_stats.week_52_low_dollar # "$95.92"
 key_stats.market_cap # 990869169557
-key_stats.market_cap_dollar # "$990,869,169,557"
+key_stats.market_cap_dollars # "$990,869,169,557"
 key_stats.employees # 133074
 key_stats.day_200_moving_avg # 112.43
 key_stats.day_50_moving_avg # 121
@@ -301,25 +276,6 @@ earnings.year_ago_change_percent_s # '+15.31%'
 
 See [#earnings](https://iexcloud.io/docs/api/#earnings) for detailed documentation or [earnings.rb](lib/iex/resources/earnings.rb) for returned fields.
 
-### Get Income Statement
-
-Fetches income statement for a symbol.
-
-```ruby
-income = client.income('MSFT')
-
-income.report_date # '2019-03-31'
-income.total_revenue # 30_505_000_000
-income.total_revenue_dollar # '$30,505,000,000'
-income.cost_of_revenue # 10_170_000_000
-income.cost_of_revenue_dollar # '$10,170,000,000'
-income.gross_profit # 20_335_000_000
-income.gross_profit_dollar # '$20,335,000,000'
-...
-```
-
-See [#income-statement](https://iexcloud.io/docs/api/#income-statement) for detailed documentation or [income.rb](lib/iex/resources/income.rb) for returned fields.
-
 ### Get Sector Performance
 
 Fetches latest sector's performance.
@@ -376,84 +332,20 @@ crypto.high_dollar #'$3,590'
 
 See [#crypto](https://iexcloud.io/docs/api/#crypto) for detailed documentation or [crypto.rb](lib/iex/resources/crypto.rb) for returned fields.
 
-### ISIN Mapping
-
-Convert ISIN to IEX Cloud symbols.
-
-```ruby
-symbols = client.ref_data_isin('US0378331005')
-
-symbols.first.exchange # NAS
-symbols.first.iex_id # IEX_4D48333344362D52
-symbols.first.region # US
-symbols.first.symbol # AAPL
-```
-
-The API also lets you convert multiple ISINs to IEX Cloud symbols.
-
-```ruby
-symbols = client.ref_data_isin(['US0378331005', 'US0378331006'])
-```
-
-
-You can use `mapped: true` option to receive symbols grouped by their ISINs.
-
-```ruby
-client.ref_data_isin(['US0378331005', 'US5949181045'], mapped: true) # {'US0378331005' => [...], 'US5949181045' => [...]}
-```
-
-See [#ISIN Mapping](https://iexcloud.io/docs/api/#isin-mapping) for detailed documentation or [isin_mapping.rb](lib/iex/resources/isin_mapping.rb) for returned fields.
-
-### Get Symbols
-
-Returns an array of symbols
-
-```ruby
-symbols = client.ref_data_symbols()
-
-symbol = symbols.first
-symbol.exchange # NAS
-symbol.iex_id # IEX_46574843354B2D52
-symbol.region # US
-symbol.symbol # A
-```
-
-See [#symbols](https://iexcloud.io/docs/api/#symbols) for detailed documentation or [symbols.rb](lib/iex/resources/symbols.rb) for returned fields.
-
-### Get List
-
-Returns an array of quotes for the top 10 symbols in a specified list.
-
-```ruby
-client.stock_market_list(:mostactive) # [{symbol: 'AAPL', ...}, {...}]
-```
-
-See [#list](https://iexcloud.io/docs/api/#list) for detailed documentation or [quote.rb](lib/iex/resources/quote.rb) for returned fields.
-
-### Other Requests
-
-Public endpoints that aren't yet supported by the client can be called using `client.get`, `client.post`, `client.put`
-and `client.delete` methods. Pass the required token explicitly:
-
-```ruby
-client.post('ref-data/isin', isin: ['US0378331005'], token: 'secret_token') # [{'exchange' => 'NAS', ..., 'symbol' => 'AAPL'}, {'exchange' => 'ETR', ..., 'symbol' => 'APC-GY']
-```
-
 ## Configuration
 
 You can configure client options globally or directly with a `IEX::Api::Client` instance.
 
 ```ruby
 IEX::Api::Client.configure do |config|
-  config.publishable_token = ENV['IEX_API_PUBLISHABLE_TOKEN']
-  config.endpoint = 'https://sandbox.iexapis.com/v1' # use sandbox environment
+  config.user_agent = 'IEX Ruby Client/1.0.0'
 end
 ```
 
 ```ruby
 client = IEX::Api::Client.new(
-  publishable_token: ENV['IEX_API_PUBLISHABLE_TOKEN'],
-  endpoint: 'https://cloud.iexapis.com/v1'
+  publishable_token: 'token',
+  user_agent: 'IEX Ruby Client/1.0.0'
 )
 ```
 
@@ -470,15 +362,6 @@ timeout             | Optional open/read timeout in seconds.
 open_timeout        | Optional connection open timeout in seconds.
 publishable_token   | IEX Cloud API publishable token.
 endpoint            | Defaults to `https://cloud.iexapis.com/v1`.
-referer             | Optional string for HTTP `Referer` header, enables token domain management.
-
-## Sandbox Environment
-
-IEX recommends you use a sandbox token and endpoint for testing.
-
-However, please note that data in the IEX sandbox environment is scrambled. Therefore elements such as company and people names, descriptions, tags, and website URLs don't render any coherent data. In addition, results, such as closing market prices and dividend yield, are not accurate and vary on every call.
-
-See [IEX sandbox environment](https://intercom.help/iexcloud/en/articles/2915433-testing-with-the-iex-cloud-sandbox) for more information.
 
 ## Errors
 
