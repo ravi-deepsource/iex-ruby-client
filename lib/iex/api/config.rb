@@ -13,8 +13,6 @@ module IEX
         open_timeout
         endpoint
         publishable_token
-        secret_token
-        referer
       ].freeze
 
       attr_accessor(*Config::ATTRIBUTES)
@@ -22,7 +20,6 @@ module IEX
       def reset!
         self.endpoint = 'https://cloud.iexapis.com/v1'
         self.publishable_token = ENV['IEX_API_PUBLISHABLE_TOKEN']
-        self.secret_token = ENV['IEX_API_SECRET_TOKEN']
         self.user_agent = "IEX Ruby Client/#{IEX::VERSION}"
         self.ca_path = defined?(OpenSSL) ? OpenSSL::X509::DEFAULT_CERT_DIR : nil
         self.ca_file = defined?(OpenSSL) ? OpenSSL::X509::DEFAULT_CERT_FILE : nil
@@ -30,7 +27,6 @@ module IEX
         self.logger = nil
         self.timeout = nil
         self.open_timeout = nil
-        self.referer = nil
       end
     end
 

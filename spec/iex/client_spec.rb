@@ -17,11 +17,6 @@ describe IEX::Api::Client do
         expect(client.user_agent).to eq IEX::Api::Config.user_agent
         expect(client.user_agent).to include IEX::VERSION
       end
-      it 'caches the Faraday connection to allow persistent adapters' do
-        first = client.send(:connection)
-        second = client.send(:connection)
-        expect(first).to equal second
-      end
       (IEX::Api::Config::ATTRIBUTES - [:logger]).each do |key|
         it "sets #{key}" do
           expect(client.send(key)).to eq IEX::Api::Config.send(key)
@@ -135,7 +130,7 @@ describe IEX::Api::Client do
       let(:client) { described_class.new }
       it 'results in an API key error', vcr: { cassette_name: 'client/access_denied' } do
         expect do
-          client.get '/stock/msft/quote', token: client.publishable_token
+          client.get '/stock/msft/quote'
         end.to raise_error IEX::Errors::PermissionDeniedError, /The API key provided is not valid./
       end
     end

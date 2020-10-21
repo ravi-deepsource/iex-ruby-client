@@ -10,13 +10,14 @@ module IEX
         ].compact.join('/')
 
         params = {}
-
-        options&.each_pair do |k, v|
-          k = k.to_s.split('_').map(&:capitalize).join.sub(/^[A-Z]/, &:downcase)
-          params[k.to_sym] = v
+        if options
+          options.each_pair do |k, v|
+            k = k.to_s.split('_').map(&:capitalize).join.sub(/^[A-Z]/, &:downcase)
+            params[k.to_sym] = v
+          end
         end
 
-        response = get(url, { token: publishable_token }.merge(params))
+        response = get(url, params)
 
         if range && range.to_s == 'dynamic'
           range = response['range']
